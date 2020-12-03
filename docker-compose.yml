@@ -1,0 +1,15 @@
+version: "3"
+
+
+networks:
+  default:
+    external:
+      name: docker_Baladam
+
+services:
+  url-shortener:
+    container_name: url-shortener
+    image: registry.vsf-co.ir/url-shortener/api:latest
+    restart: always
+    ports:
+      - "127.0.0.1:8300:8000"
