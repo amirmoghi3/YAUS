@@ -1,4 +1,5 @@
-FROM alpine:latest 
-COPY  target/release/url-shortener /usr/local/bin/url-shortener
+FROM registry.vsf-co.ir/library/debian:buster-slim
+COPY  url-shortener .
 COPY .env.docker .env
-CMD ["/usr/local/bin/url-shortener"]
+RUN apt-get update && apt-get install -y  pkg-config libpq-dev brotli
+CMD ["url-shortener"]
