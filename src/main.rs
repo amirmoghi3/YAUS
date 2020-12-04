@@ -32,7 +32,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(client.clone())
             .service(web::scope("/l").configure(init_routes))
     })
-    .bind("127.0.0.1:8000")?
+    .bind("0.0.0.0:8000")?
     .run()
     .await
 }
