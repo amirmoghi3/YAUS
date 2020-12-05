@@ -1,2 +1,2 @@
-mod url;
-pub use url::init_routes;
+mod link;
+pub use link::init_routes;

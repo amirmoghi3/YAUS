@@ -8,10 +8,17 @@ use futures::stream::StreamExt;
 use mongodb::Client;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
+use regex::Regex;
 use std::sync::Mutex;
-
 const MONGO_DB: &'static str = "url";
 const MONGO_COLL_LOGS: &'static str = "shorten";
+use url::Url;
+lazy_static! {
+    static ref RE_URL: Regex = Regex::new(
+        r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
+    )
+    .unwrap();
+}
 
 #[get("/{code}")]
 async fn redirect(
@@ -49,6 +56,15 @@ async fn compress_url(
     data: web::Data<Mutex<Client>>,
     url: web::Json<CreateURLDTO>,
 ) -> impl Responder {
+    // println!("{} , {:?}", RE_URL.is_match(&url.url), RE_URL.as_str());
+    // if !RE_URL.is_match(&url.url) {
+    //     return HttpResponse::UnprocessableEntity().finish();
+    // }
+
+    match Url::parse(&url.url) {
+        Ok(_) => (),
+        Err(_e) => return HttpResponse::UnprocessableEntity().finish(),
+    }
     let shortene_collection = data
         .lock()
         .unwrap()
