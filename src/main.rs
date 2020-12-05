@@ -8,8 +8,7 @@ use actix_web::{middleware, middleware::Logger, web, App, HttpServer};
 use mongodb::{options::ClientOptions, Client};
 use std::env;
 use std::sync::*;
-#[macro_use]
-extern crate lazy_static;
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
