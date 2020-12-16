@@ -16,6 +16,7 @@ lazy_static! {
     static ref URL_NOTFOUND: String = dotenv::var("URL_NOTFOUND").unwrap();
     static ref MONGO_COLLECTION: String = dotenv::var("COLLECTION_MONGO").unwrap();
     static ref  PAGE_404: String = dotenv::var("URL_NOTFOUND").unwrap();
+    static ref  DOMAIN: String = dotenv::var("DOMAIN").unwrap();
 }
 
 
@@ -51,10 +52,11 @@ async fn redirect(
 }
 
 #[post("/compress")]
-async fn compress_url(
+async fn compressor(
     data: web::Data<Mutex<Client>>,
     url: web::Json<CreateURLDTO>,
 ) -> impl Responder {
+    if url.url.contains(&**DOMAIN) {
     match Url::parse(&url.url) {
         Ok(_) => (),
         Err(_e) => return HttpResponse::UnprocessableEntity().finish(),
@@ -64,7 +66,6 @@ async fn compress_url(
         .unwrap()
         .database(&MONGO_DB)
         .collection(&MONGO_COLLECTION);
-    println!("{:?},{:?}",&**MONGO_DB,&**MONGO_COLLECTION);
     let rand_string: String = thread_rng().sample_iter(&Alphanumeric).take(6).collect();
     match shortene_collection
         .insert_one(
@@ -87,9 +88,56 @@ async fn compress_url(
         }
     }
 }
+ return HttpResponse::NotAcceptable().finish();
+}
+
+
+#[post("/expand")]
+async fn expander(
+    data: web::Data<Mutex<Client>>,
+    url: web::Json<CreateURLDTO>,
+) -> impl Responder {
+       if url.url.contains(&**DOMAIN) {
+    match Url::parse(&url.url) {
+        Ok(_) => (),
+        Err(_e) => return HttpResponse::UnprocessableEntity().finish(),
+    }
+    let shortene_collection = data
+        .lock()
+        .unwrap()
+        .database(&MONGO_DB)
+        .collection(&MONGO_COLLECTION);
+    println!("{:?},{:?}",&**MONGO_DB,&**MONGO_COLLECTION);
+    let rand_string: String = thread_rng().sample_iter(&Alphanumeric).take(128).collect();
+    match shortene_collection
+        .insert_one(
+            doc! {"url":&url.url,"mirror":&rand_string,"createdOn": Bson::DateTime(Utc::now()) ,"use":0},
+            None,
+        )
+        .await
+    {
+        Ok(db_result) => {
+            if let Some(_new_id) = db_result.inserted_id.as_object_id() {
+                let res = Response { code: rand_string };
+                return HttpResponse::Created().json(&res);
+            } else {
+                return HttpResponse::InternalServerError().finish();
+            }
+        }
+        Err(_e) => {
+            println!("{}",_e);
+            return HttpResponse::InternalServerError().finish();
+        }
+    }
+}
+ return HttpResponse::NotAcceptable().finish();
+}
+
+
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(compress_url);
-    cfg.service(redirect);
+    cfg.service(compressor);
+    cfg.service(redirect); 
+    cfg.service(expander); 
     // cfg.service(user_informations);
     // cfg.service(user_informations_get);
     // cfg.service(protected);
