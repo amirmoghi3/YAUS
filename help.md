@@ -1,0 +1,1 @@
+cargo watch --shell "pkill -f '^target/'; cargo run"
