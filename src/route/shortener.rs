@@ -19,6 +19,7 @@ lazy_static! {
     static ref MONGO_COLLECTION: String = dotenv::var("COLLECTION_MONGO").unwrap();
     static ref PAGE_404: String = dotenv::var("URL_NOTFOUND").unwrap();
     static ref DOMAIN: String = dotenv::var("DOMAIN").unwrap();
+    static ref TOLL: String =dotenv::var("TOLL").unwrap();
 }
 
 #[get("/{code}")]
@@ -26,6 +27,7 @@ async fn redirect(
     data: web::Data<Mutex<Client>>,
     web::Path(code): web::Path<String>,
 ) -> impl Responder {
+   
     let shortene_collection = data
         .lock()
         .unwrap()
@@ -38,6 +40,7 @@ async fn redirect(
         .find(filter.clone(), None)
         .await
         .unwrap();
+   
     let update = doc! {"$inc" : {"use":1}};
     shortene_collection
         .update_one(filter, update, None)
@@ -51,7 +54,9 @@ async fn redirect(
                         if let Some(limit) = document.get("limit").and_then(Bson::as_i64) {
                             if let Some(used) = document.get("use").and_then(Bson::as_i64) {
                                 if limit > used {
-                                    return HttpResponse::Found().header("Location", url).finish();
+                                     let mut final_url :String = String::from(&**TOLL);
+                                     final_url.push_str(url);
+                                    return HttpResponse::Found().header("Location", final_url).finish();
                                 }
                             }
                         }
@@ -66,16 +71,19 @@ async fn redirect(
                                 as i64;
 
                             if expire_at > now {
-                                return HttpResponse::Found().header("Location", url).finish();
+                                let mut final_url :String = String::from(&**TOLL);
+                                     final_url.push_str(url);
+                                return HttpResponse::Found().header("Location", final_url).finish();
                             }
                         }
                     } else {
-                        return HttpResponse::Found().header("Location", url).finish();
+                        
+                        let mut final_url :String = String::from(&**TOLL);
+                                     final_url.push_str(url);
+                       return HttpResponse::Found().header("Location",final_url).finish();
                     }
 
-                    return HttpResponse::Found()
-                        .header("Location", &**PAGE_404)
-                        .finish();
+                   
                 } else {
                     return HttpResponse::Found()
                         .header("Location", &**PAGE_404)
