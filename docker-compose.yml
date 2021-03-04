@@ -9,7 +9,7 @@ networks:
 services:
   url-shortener:
     container_name: url-shortener
-    image: registry.vsf-co.ir/url-shortener/api:latest
+    image: registry.vnfco.ir/url-shortener/api:latest
     restart: always
     ports:
       - "127.0.0.1:8300:8000"

@@ -1,4 +1,4 @@
-FROM registry.vsf-co.ir/library/rust:latest
+FROM registry.vnfco.ir/library/rust:latest
 WORKDIR /usr/src/URLS
 COPY . .
 RUN cargo fetch
