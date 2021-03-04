@@ -1,4 +1,4 @@
-# YAUS.ir 
+# YAUS 
 ### Yet Another Url Shortener 
 #### YAUS WAS BUILT WITH ACTIX FRAMEWORK
 ##### YAUS CAN :
